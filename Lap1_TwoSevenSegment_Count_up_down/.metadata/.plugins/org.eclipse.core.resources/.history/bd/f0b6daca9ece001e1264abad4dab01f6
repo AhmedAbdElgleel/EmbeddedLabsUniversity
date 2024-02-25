@@ -1,0 +1,96 @@
+/*
+ ================================================================================================================================
+ * File Name   : Main
+ * Created On  : Sept 23, 2023
+ * Time 	   : 4:21:46 PM
+ * Author Name : Ahmed Abd Elgleel
+ ================================================================================================================================
+ */
+#include "seven_segment.h"
+#include "gpio_interface.h"
+#include <util/delay.h>
+
+int main(void)
+{
+    /* Initialize variables to keep track of current value and switch flags */
+    uint8 current_value = 0, sw1_flag = 0, sw2_flag = 0;
+
+    /* Initialize the seven segment display */
+    SEVENSEGMENT_init();
+
+    /* Main loop */
+    while (1)
+    {
+        /* Display units digit */
+        SEVENSEGMENT_disable(FIRST_SEVEN_SEGMENT);        /* Disable the SevenSegment of units */
+        SEVENSEGMENT_enable(SECOND_SEVEN_SEGMENT);         /* Enable SevenSegment of Units */
+        SEVENSEGMENT_DisplayWithoutDecoder(current_value / 10); /* Display the tens Value */
+
+        _delay_ms(3); /* Small delay to show the number (multiplexing method) */
+
+        /* Display tens digit */
+        SEVENSEGMENT_disable(SECOND_SEVEN_SEGMENT);       /* Disable the SevenSegment of tens */
+        SEVENSEGMENT_enable(FIRST_SEVEN_SEGMENT);          /* Enable SevenSegment of units */
+        SEVENSEGMENT_DisplayWithoutDecoder(current_value % 10); /* Display the units value */
+
+        _delay_ms(3); /* Small delay to show the number (multiplexing method) */
+
+        /* Check switch 1 for incrementing the value */
+        if (0 == GPIO_readPin(PORTD_ID, PIN2_ID))
+        {
+            _delay_ms(10); /* Delay for the debounce */
+            if (0 == GPIO_readPin(PORTD_ID, PIN2_ID))
+            {
+                if (0 == sw1_flag)
+                {
+                    sw1_flag = 1;
+                    /* Increment the value, reset to 0 if it reaches 99 */
+                    if (99 == current_value)
+                    {
+                        current_value = 0;
+                    }
+                    else
+                    {
+                        current_value++;
+                    }
+                }
+            }
+        }
+        /* Check switch 2 for decrementing the value */
+        else if (0 == GPIO_readPin(PORTD_ID, PIN3_ID))
+        {
+            _delay_ms(10); /* Delay for the debounce */
+            if (0 == GPIO_readPin(PORTD_ID, PIN3_ID))
+            {
+                if (0 == sw2_flag)
+                {
+                    sw2_flag = 1;
+                    /* Decrement the value, reset to 99 if it reaches 0 */
+                    if (0 == current_value)
+                    {
+                        current_value = 99;
+                    }
+                    else
+                    {
+                        current_value--;
+                    }
+                }
+            }
+        }
+        /* Check switch 3 for resetting the count */
+        else if (0 == GPIO_readPin(PORTD_ID, PIN4_ID))
+        {
+            _delay_ms(10); /* Delay for the debounce */
+            if (0 == GPIO_readPin(PORTD_ID, PIN4_ID))
+            {
+                current_value = 0;
+            }
+        }
+        /* Reset switch flags if no switches are pressed */
+        else
+        {
+            sw1_flag = 0;
+            sw2_flag = 0;
+        }
+    }
+}

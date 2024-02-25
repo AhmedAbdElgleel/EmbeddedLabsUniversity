@@ -1,0 +1,94 @@
+#include "seven_segment.h"
+#include "gpio_interface.h"
+#include <util/delay.h>
+
+int main(void)
+{
+	SEVENSEGMENT_init();		/*Intialize the seven segment*/
+	uint8 units=0,tens=0;
+
+	while(1)
+	{
+		SEVENSEGMENT_enable(FIRST_SEVEN_SEGMENT);		/*Enable SevenSegment of Units*/
+		SEVENSEGMENT_DisplayWithoutDecoder(units);		/*Display the units Value*/
+		SEVENSEGMENT_disable(FIRST_SEVEN_SEGMENT);		/*Disable the SevenSegment of units*/
+
+		_delay_ms(3);									/* Small delay to show the number (multiplexing method)*/
+
+		SEVENSEGMENT_enable(SECOND_SEVEN_SEGMENT);		/*Enable SevenSegment of tens*/
+		SEVENSEGMENT_DisplayWithoutDecoder(tens);		/*Display*/
+		SEVENSEGMENT_disable(SECOND_SEVEN_SEGMENT);		/*Disable the SevenSegment of tens*/
+
+		_delay_ms(3);									/* Small delay to show the number (multiplexing method)*/
+
+		if(1==GPIO_readPin(PORTD_ID, PIN2_ID))
+		{
+			_delay_ms(10);								/* Delay for the debounce */
+			if(1==GPIO_readPin(PORTD_ID, PIN2_ID))		/*Increment the seven segment*/
+			{
+				if(9<=units)
+				{
+					units=0;
+					tens++;
+				}
+				else
+				{
+					units++;
+				}
+			}
+		}
+		else if(1==GPIO_readPin(PORTD_ID, PIN3_ID))
+		{
+			_delay_ms(10);								/* Delay for the debounce */
+			if(1==GPIO_readPin(PORTD_ID, PIN2_ID))		/*decrement the seven segment*/
+			{
+				if(0==units)
+				{
+					units=9;
+					tens--;
+				}
+				else
+				{
+					units--;
+				}
+			}
+		}
+		else if(1==GPIO_readPin(PORTD_ID, PIN3_ID))		/*Reset the count*/
+		{
+			_delay_ms(10);								/* Delay for the debounce */
+			if(1==GPIO_readPin(PORTD_ID, PIN3_ID))
+			{
+				units=0;
+				tens=0;
+			}
+		}
+		else
+		{
+			/*Do no thing*/
+		}
+	}
+}
+
+void
+_delay_ms(double __ms)
+{
+	uint16_t __ticks;
+	double __tmp = ((F_CPU) / 4e3) * __ms;
+	if (__tmp < 1.0)
+		__ticks = 1;
+	else if (__tmp > 65535)
+	{
+		//	__ticks = requested delay in 1/10 ms
+		__ticks = (uint16_t) (__ms * 10.0);
+		while(__ticks)
+		{
+			// wait 1/10 ms
+			_delay_loop_2(((F_CPU) / 4e3) / 10);
+			__ticks --;
+		}
+		return;
+	}
+	else
+		__ticks = (uint16_t)__tmp;
+	_delay_loop_2(__ticks);
+}

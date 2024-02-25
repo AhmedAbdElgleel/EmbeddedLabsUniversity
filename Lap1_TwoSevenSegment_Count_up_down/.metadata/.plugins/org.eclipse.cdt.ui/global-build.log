@@ -1,0 +1,39 @@
+22:45:10 **** Incremental Build of configuration Release for project Lap_1 ****
+make all 
+Building file: ../main.c
+Invoking: AVR Compiler
+avr-gcc -Wall -Os -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega32 -DF_CPU=16000000UL -MMD -MP -MF"main.d" -MT"main.o" -c -o "main.o" "../main.c"
+Finished building: ../main.c
+ 
+Building target: Lap_1.elf
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,Lap_1.map -mmcu=atmega32 -o "Lap_1.elf"  ./gpio.o ./main.o ./sevenSegment.o   
+Finished building target: Lap_1.elf
+ 
+Invoking: AVR Create Extended Listing
+avr-objdump -h -S Lap_1.elf  >"Lap_1.lss"
+Finished building: Lap_1.lss
+ 
+Create Flash image (ihex format)
+avr-objcopy -R .eeprom -R .fuse -R .lock -R .signature -O ihex Lap_1.elf  "Lap_1.hex"
+Finished building: Lap_1.hex
+ 
+Create eeprom image (ihex format)
+avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex Lap_1.elf  "Lap_1.eep"
+Finished building: Lap_1.eep
+ 
+Invoking: Print Size
+avr-size --format=avr --mcu=atmega32 Lap_1.elf
+AVR Memory Usage
+----------------
+Device: atmega32
+
+Program:    1734 bytes (5.3% Full)
+(.text + .data + .bootloader)
+
+Data:          0 bytes (0.0% Full)
+(.data + .bss + .noinit)
+
+
+Finished building: sizedummy
+ 
